@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"order-managment/src/application/UseCases"
 	"order-managment/src/domain/entities"
@@ -20,16 +20,22 @@ func NewCreateProductController(useCase *usecases.CreateProductUseCase) *CreateP
 
 func (controller *CreateProductController) Run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Error reading request body",
+		})		
 		return
 	}
 	
 	var products entities.Products
 	err = json.Unmarshal(body, &products)
 	if err != nil {
-		http.Error(w, "Error parsing request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Error parsing request body",
+		})
 		return
 	}
 	
@@ -62,7 +68,10 @@ func (controller *CreateProductController) Run(w http.ResponseWriter, r *http.Re
 
 	response, err := controller.UseCase.Run(data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": err.Error(),
+		})
 		return
 	}
 

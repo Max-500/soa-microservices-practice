@@ -12,7 +12,7 @@ type MongoDB struct {
     Client *mongo.Client
 }
 
-func (db *MongoDB) Connect() error {
+func (db *MongoDB) Connect(dbType string) error {
     // Establece un contexto
     ctx := context.TODO()
 
@@ -33,6 +33,8 @@ func (db *MongoDB) Connect() error {
 
     db.Client = client
 
-    fmt.Println("¡Conectado a MongoDB!")
+    if dbType == "MongoDB"{
+        fmt.Println("¡Conectado a MongoDB!")
+    }
     return nil
 }

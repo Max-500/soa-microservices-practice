@@ -2,9 +2,11 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"order-managment/src/domain/entities"
+	requests "order-managment/src/infraestructure/Controllers/DTO/Requests"
 	configMongo "order-managment/src/infraestructure/Database/MongoDB/Config"
 	configMySQL "order-managment/src/infraestructure/Database/MySQL/Config"
 )
@@ -58,11 +60,54 @@ func (repo *ProductRepository) Create(data []entities.Product) ([]entities.Produ
 	return insertedProducts, nil
 }
 
-func (repo *ProductRepository) Delete(id uuid.UUID) (string, error) {
-	return "", nil
+func (repo *ProductRepository) Delete(uuids []requests.DeleteProductRequest) (string, error) {
+	var notDeleted []string
+
+	if repo.dbType == "MongoDB" {
+		collection := repo.dbMongo.Client.Database("mydatabase").Collection("products")
+		for _, uuid := range uuids {
+			filter := bson.M{"uuid": uuid.Product}
+			res, err := collection.DeleteOne(context.TODO(), filter)
+			if err != nil {
+				return "", err
+			}
+			if res.DeletedCount == 0 {
+				notDeleted = append(notDeleted, uuid.Product)
+			}
+		}
+	}
+
+	if repo.dbType == "MySQL" {
+		db := repo.dbMySQL.DB
+		stmt, err := db.Prepare("DELETE FROM products WHERE uuid = ?")
+		if err != nil {
+			return "", err
+		}
+		defer stmt.Close()
+
+		for _, uuid := range uuids {
+			res, err := stmt.Exec(uuid.Product)
+			if err != nil {
+				return "", err
+			}
+			rowCnt, err := res.RowsAffected()
+			if err != nil {
+				return "", err
+			}
+			if rowCnt == 0 {
+				notDeleted = append(notDeleted, uuid.Product)
+			}
+		}
+	}
+
+	if len(notDeleted) > 0 {
+		return fmt.Sprintf("No se pudieron eliminar los productos con los siguientes UUIDs: %v", notDeleted), nil
+	}
+
+	return "Todos los productos se eliminaron correctamente", nil
 }
 
-func (repo *ProductRepository) UpdateTracking(id uuid.UUID) (string, error) {
+func (repo *ProductRepository) UpdateTracking(uuid string) (string, error) {
 	return "", nil
 }
 

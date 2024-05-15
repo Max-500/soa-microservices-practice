@@ -2,12 +2,12 @@ package ports
 
 import (
 	"order-managment/src/domain/entities"
-	"github.com/google/uuid"
+	requests "order-managment/src/infraestructure/Controllers/DTO/Requests"
 )
 
 type IProduct interface {
 	Create([]entities.Product) ([]entities.Product, error)
-	Delete(id uuid.UUID) (string, error)
-	UpdateTracking(id uuid.UUID) (string, error)
+	Delete(uuid []requests.DeleteProductRequest) (string, error)
+	UpdateTracking(uuid string) (string, error)
 	GetAllProducts() ([]entities.Product, error)
 }

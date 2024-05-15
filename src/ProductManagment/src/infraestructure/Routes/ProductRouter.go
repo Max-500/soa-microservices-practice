@@ -14,22 +14,27 @@ func InitRoutes(dbType string) *mux.Router {
 	r := mux.NewRouter()
 
 	mongo := &configMongo.MongoDB{}
-	err := mongo.Connect()
+	err := mongo.Connect(dbType)
 	if err != nil {
 		println(err)
 	}
 
 	mysql := &configMySQL.MySQL{}
-	err = mysql.Connect()
+	err = mysql.Connect(dbType)
 	if err != nil {
 		println(err)
 	}
 	productRepository := repositories.NewProductRepository(dbType, mysql, mongo)
 
-	productUseCase := usecases.NewCreateProductUseCase(productRepository)
-	productController := controllers.NewCreateProductController(productUseCase)
+	createProductUseCase := usecases.NewCreateProductUseCase(productRepository)
+	createProductController := controllers.NewCreateProductController(createProductUseCase)
 
-	r.HandleFunc("/", productController.Run).Methods("POST")
+	deleteProductUseCase := usecases.NewDeleteProductUseCase(productRepository)
+	deleteProductController := controllers.NewDeleteProductController(deleteProductUseCase)
+
+	r.HandleFunc("/", createProductController.Run).Methods("POST")
+
+	r.HandleFunc("/", deleteProductController.Run).Methods("DELETE")
 
 	return r
 }

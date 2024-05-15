@@ -11,7 +11,7 @@ type MySQL struct {
     DB *sql.DB
 }
 
-func (db *MySQL) Connect() error {
+func (db *MySQL) Connect(dbType string) error {
     // Configura las opciones de cliente
     mysqlDB, err := sql.Open("mysql", "root:@tcp(localhost:3306)/mydatabase")
     if err != nil {
@@ -26,6 +26,8 @@ func (db *MySQL) Connect() error {
 
     db.DB = mysqlDB
 
-    fmt.Println("¡Conectado a MySQL!")
+    if dbType == "MySQL"{
+        fmt.Println("¡Conectado a MySQL!")
+    }
     return nil
 }
