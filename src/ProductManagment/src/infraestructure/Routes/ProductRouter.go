@@ -32,9 +32,12 @@ func InitRoutes(dbType string) *mux.Router {
 	deleteProductUseCase := usecases.NewDeleteProductUseCase(productRepository)
 	deleteProductController := controllers.NewDeleteProductController(deleteProductUseCase)
 
-	r.HandleFunc("/", createProductController.Run).Methods("POST")
+	getAllProductsUseCase := usecases.NewGetAllProductsUseCase(productRepository)
+	getAllProductsController := controllers.NewGetAllProductsController(getAllProductsUseCase)
 
+	r.HandleFunc("/", createProductController.Run).Methods("POST")
 	r.HandleFunc("/", deleteProductController.Run).Methods("DELETE")
+	r.HandleFunc("/", getAllProductsController.Run).Methods("GET")
 
 	return r
 }
