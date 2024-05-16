@@ -8,7 +8,6 @@ import (
 	requests "order-managment/src/infraestructure/Controllers/DTO/Requests"
 	configMongo "order-managment/src/infraestructure/Database/MongoDB/Config"
 	configMySQL "order-managment/src/infraestructure/Database/MySQL/Config"
-
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -17,13 +16,16 @@ type ProductRepository struct {
 	dbType  string
 	dbMySQL *configMySQL.MySQL
 	dbMongo *configMongo.MongoDB
+	dbName string
+
 }
 
-func NewProductRepository(dbType string, mysql *configMySQL.MySQL, mongo *configMongo.MongoDB) *ProductRepository {
+func NewProductRepository(dbType string, mysql *configMySQL.MySQL, mongo *configMongo.MongoDB, dbName string) *ProductRepository {
 	return &ProductRepository{
 		dbType:  dbType,
 		dbMySQL: mysql,
 		dbMongo: mongo,
+		dbName: dbName,
 	}
 }
 
@@ -31,7 +33,7 @@ func (repo *ProductRepository) Create(data []entities.Product) ([]entities.Produ
 	var insertedProducts []entities.Product
 
 	if repo.dbType == "MongoDB" {
-		collection := repo.dbMongo.Client.Database("mydatabase").Collection("products")
+		collection := repo.dbMongo.Client.Database(repo.dbName).Collection("products")
 		for _, product := range data {
 			product.Uuid = uuid.New().String()
 			_, err := collection.InsertOne(context.TODO(), bson.M{
@@ -66,7 +68,7 @@ func (repo *ProductRepository) Delete(uuids []requests.DeleteProductRequest) (st
 	var notDeleted []string
 
 	if repo.dbType == "MongoDB" {
-		collection := repo.dbMongo.Client.Database("mydatabase").Collection("products")
+		collection := repo.dbMongo.Client.Database(repo.dbName).Collection("products")
 		for _, uuid := range uuids {
 			filter := bson.M{"uuid": uuid.Product}
 			res, err := collection.DeleteOne(context.TODO(), filter)
@@ -138,7 +140,7 @@ func (repo *ProductRepository) GetAllProducts() ([]entities.Product, error) {
 	}
 
 	if repo.dbType == "MongoDB" {
-		collection := repo.dbMongo.Client.Database("mydatabase").Collection("products")
+		collection := repo.dbMongo.Client.Database(repo.dbName).Collection("products")
 		cursor, err := collection.Find(context.Background(), bson.D{})
 		if err != nil {
 			log.Fatalf("Error al buscar en MongoDB: %v", err)

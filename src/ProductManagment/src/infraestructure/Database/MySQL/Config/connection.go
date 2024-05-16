@@ -9,11 +9,17 @@ import (
 
 type MySQL struct {
     DB *sql.DB
+    User string
+    Password string
+    Host string
+    Port string
+    Name string
 }
 
 func (db *MySQL) Connect(dbType string) error {
     // Configura las opciones de cliente
-    mysqlDB, err := sql.Open("mysql", "root:@tcp(localhost:3306)/mydatabase")
+    url := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", db.User, db.Password, db.Host, db.Port, db.Name)
+    mysqlDB, err := sql.Open("mysql", url)
     if err != nil {
         log.Fatal(err)
     }

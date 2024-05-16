@@ -1,3 +1,5 @@
+CREATE DATABASE mydatabase;
+
 USE mydatabase;
 
 CREATE TABLE products (

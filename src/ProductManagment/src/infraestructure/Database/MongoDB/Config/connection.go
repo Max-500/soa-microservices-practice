@@ -10,14 +10,18 @@ import (
 
 type MongoDB struct {
     Client *mongo.Client
+    Name string
+    Host string
+    Port string
 }
 
 func (db *MongoDB) Connect(dbType string) error {
     // Establece un contexto
     ctx := context.TODO()
 
+    url := fmt.Sprintf("mongodb://%s:%s/%s", db.Host, db.Port, db.Name)
     // Configura las opciones de cliente
-    clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/mydatabase")
+    clientOptions := options.Client().ApplyURI(url)
 
     // Conéctate a MongoDB
     client, err := mongo.Connect(ctx, clientOptions)
