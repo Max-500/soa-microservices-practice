@@ -12,5 +12,7 @@ export class OrderProductMySQModel extends Model {
 OrderProductMySQModel.init({
     uuid: { type: DataTypes.UUID, defaultValue:DataTypes.UUIDV4, primaryKey:true, allowNull:false },
     price: { type: DataTypes.INTEGER },
-    amount: { type: DataTypes.INTEGER }
+    amount: { type: DataTypes.INTEGER },
+    orderUuid: { type:DataTypes.UUID, defaultValue:null },
+    productUuid: { type:DataTypes.UUID, defaultValue:null }
 }, { sequelize, modelName:'orders_products' })

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "tsc-watch --onSuccess \"node dist/app.js\"",
-    "dev2": "tsc-watch --onSuccess \"node dist/OrderManangment/src/app.js\"",
+    "dev-order": "tsc-watch --onSuccess \"node dist/OrderManangment/src/app.js\"",
     "build": "npx tsc",
     "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"

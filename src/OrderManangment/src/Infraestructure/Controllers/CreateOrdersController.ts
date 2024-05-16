@@ -5,7 +5,7 @@ export class CreateOrdersController {
     constructor(readonly createOrdersUseCase:CreateOrdersUseCase){}
 
     async run(req:Request, res:Response) {
-        const response = await this.createOrdersUseCase.run(req.body.data);
+        const response = await this.createOrdersUseCase.run(req.body.orders);
         return res.status(response.status).json(response);
     }
 }

@@ -9,10 +9,8 @@ const app:Application = express();
 const signale = new Signale();
 
 app.use(morgan('dev'));
-console.log(process.env.PORT);
 const PORT = 3000;
 const GATEWAY = "prueba";
-
 
 app.use('/api/v1/orders',proxy('http://localhost:3001'));
 app.use('/api/v1/products',proxy('http://localhost:8080'));
