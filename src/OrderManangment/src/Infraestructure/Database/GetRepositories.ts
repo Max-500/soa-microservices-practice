@@ -1,4 +1,4 @@
-import { OrderMySQLRepository } from "./MySQL/Repositories/OrderMySQLRepository";
+import { OrderMySQLRepository } from "../Repositories/OrderMySQLRepository";
 
 export function getOrderRepository(dbType:string) {
     if(dbType == "MySQL") return new OrderMySQLRepository();

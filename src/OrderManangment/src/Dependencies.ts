@@ -7,6 +7,8 @@ import { UpdateOrderController } from "./Infraestructure/Controllers/UpdateOrder
 import { getOrderRepository } from "./Infraestructure/Database/GetRepositories";
 import { MySQLConfig } from "./Infraestructure/Database/MySQL/Config/DatabaseConfig";
 import { DatabaseConfig } from "./Infraestructure/Database/MySQL/Config/IDatabase";
+import { connect } from "./Infraestructure/Services/RabbitMQ";
+import { RabbitMQService } from "./Infraestructure/Services/RabbitMQService";
 
 export type DatabaseType = 'MySQL' | 'MongoDB';
 const dbType: DatabaseType = 'MySQL';
@@ -23,6 +25,10 @@ dbConfig.initialize().then(() => {
   console.log('Database initialized.')
 });
 
+
+// Conexion a RabbitMQ
+const rabbitMQServicePromise = RabbitMQService.getInstance();
+
 const orderRepository = getOrderRepository(dbType);
 
 const createOrdersUseCase = new CreateOrdersUseCase(orderRepository);
@@ -31,5 +37,8 @@ export const createOrderController = new CreateOrdersController(createOrdersUseC
 const getOrdersUseCase = new GetOrdersUseCase(orderRepository);
 export const getOrdersController = new GetOrdersController(getOrdersUseCase);
 
-const updateOrderUseCase = new UpdateOrderUseCase(orderRepository);
-export const updateOrderController = new UpdateOrderController(updateOrderUseCase);
+export const updateOrderController = rabbitMQServicePromise.then(rabbitMQService => {
+  const updateOrderUseCase = new UpdateOrderUseCase(orderRepository, rabbitMQService);
+  const updateOrderController = new UpdateOrderController(updateOrderUseCase);
+  return updateOrderController
+});

@@ -1,7 +1,8 @@
-import { IOrder } from "../../../../Domain/Ports/IOrder";
-import { generateUuid } from "../../../Helpers/Functions";
-import { OrderModel } from "../Models/OrderMySQLModel";
-import { OrderProductMySQModel } from "../Models/OrderProductMySQLModel";
+import { IOrder } from "../../Domain/Ports/IOrder";
+import { generateUuid } from "../Helpers/Functions";
+import { OrderModel } from "../Database/MySQL/Models/OrderMySQLModel";
+import { OrderProductMySQModel } from "../Database/MySQL/Models/OrderProductMySQLModel";
+import { RabbitMQService } from "../Services/RabbitMQService";
 
 export class OrderMySQLRepository implements IOrder {
     async createOrders(data: any): Promise<any> {
@@ -60,7 +61,7 @@ export class OrderMySQLRepository implements IOrder {
         }
     }
 
-    async updateStatus(data: any): Promise<any> {
+    async updateStatus(data: any, serviceRabbit:RabbitMQService): Promise<any> {
         try {
             const order = await OrderModel.findByPk(data)
             if(!order){
@@ -72,6 +73,15 @@ export class OrderMySQLRepository implements IOrder {
 
             order.status = "SEND";
             await order.save();
+
+            console.log(order.dataValues);
+            const product = await OrderProductMySQModel.findOne({ where: { orderUuid: order.dataValues.uuid } })
+            const message = { 
+                uuid: product?.dataValues.productUuid,
+                amount: product?.dataValues.amount
+             }
+            console.log(message);
+            serviceRabbit.sendMessage("update_stock_queue", message)
             return {
                 status: 200,
                 order
@@ -82,7 +92,6 @@ export class OrderMySQLRepository implements IOrder {
                 error
             }
         }
-        throw new Error("Method not implemented.");
     }
 
 }
