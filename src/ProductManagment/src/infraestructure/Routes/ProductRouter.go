@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"github.com/gorilla/mux"
+	"log"
 	usecases "order-managment/src/application/UseCases"
 	controllers "order-managment/src/infraestructure/Controllers"
 	configMongo "order-managment/src/infraestructure/Database/MongoDB/Config"
 	configMySQL "order-managment/src/infraestructure/Database/MySQL/Config"
 	repositories "order-managment/src/infraestructure/Repositories"
-	"github.com/gorilla/mux"
+	services "order-managment/src/infraestructure/Services"
 )
 
 func InitRoutes(dbType string, dbName string, dbHost string, dbPort string, dbUser string, dbPassword string) *mux.Router {
@@ -23,15 +25,15 @@ func InitRoutes(dbType string, dbName string, dbHost string, dbPort string, dbUs
 			println(err)
 		}
 	}
-	
+
 	mysql := &configMySQL.MySQL{
-		User: dbUser,
+		User:     dbUser,
 		Password: dbPassword,
-		Host: dbHost,
-		Port: dbPort,
-		Name: dbName,
+		Host:     dbHost,
+		Port:     dbPort,
+		Name:     dbName,
 	}
-	
+
 	if dbType == "MySQL" {
 		err := mysql.Connect(dbType)
 		if err != nil {
@@ -53,6 +55,11 @@ func InitRoutes(dbType string, dbName string, dbHost string, dbPort string, dbUs
 	r.HandleFunc("/", createProductController.Run).Methods("POST")
 	r.HandleFunc("/", deleteProductController.Run).Methods("DELETE")
 	r.HandleFunc("/", getAllProductsController.Run).Methods("GET")
-
+	conn, _ := services.Connect()
+	rabbitService := services.NewRabbitMQService(conn, productRepository)
+	_, err := rabbitService.ReceiveMessage("update_stock_queue")
+	if err != nil {
+		log.Fatalf("Error al recibir mensajes: %v", err)
+	}
 	return r
 }

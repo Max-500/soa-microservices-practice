@@ -111,8 +111,27 @@ func (repo *ProductRepository) Delete(uuids []requests.DeleteProductRequest) (st
 	return "Todos los productos se eliminaron correctamente", nil
 }
 
-func (repo *ProductRepository) UpdateTracking(uuid string) (string, error) {
-	return "", nil
+func (repo *ProductRepository) UpdateTracking(uuid string, amount int) (string, error) {
+	if repo.dbType == "MongoDB" {
+		collection := repo.dbMongo.Client.Database(repo.dbName).Collection("products")
+		filter := bson.M{"uuid": uuid, "stock": bson.M{"$gte": amount}}
+		update := bson.M{"$inc": bson.M{"stock": -amount}}
+		_, err := collection.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if repo.dbType == "MySQL" {
+		db := repo.dbMySQL.DB
+		query := `UPDATE products SET stock = stock - ? WHERE uuid = ? AND stock >= 1`
+		_, err := db.Exec(query, amount, uuid)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return "",nil
 }
 
 func (repo *ProductRepository) GetAllProducts() ([]entities.Product, error) {

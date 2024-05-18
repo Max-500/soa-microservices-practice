@@ -84,4 +84,5 @@ func main() {
 	url := fmt.Sprintf(":%s", port)
     r := routes.InitRoutes(dbType, dbName, dbHost, dbPort, dbUser, dbPassword)
     log.Fatal(http.ListenAndServe(url, r))
+
 }

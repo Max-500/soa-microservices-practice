@@ -8,6 +8,6 @@ import (
 type IProduct interface {
 	Create([]entities.Product) ([]entities.Product, error)
 	Delete(uuid []requests.DeleteProductRequest) (string, error)
-	UpdateTracking(uuid string) (string, error)
+	UpdateTracking(uuid string, amount int) (string, error)
 	GetAllProducts() ([]entities.Product, error)
 }
