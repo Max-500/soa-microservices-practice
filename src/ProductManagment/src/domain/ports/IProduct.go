@@ -10,4 +10,5 @@ type IProduct interface {
 	Delete(uuid []requests.DeleteProductRequest) (string, error)
 	UpdateTracking(uuid string, amount int) (string, error)
 	GetAllProducts() ([]entities.Product, error)
+	GetProduct(uuid string) ([]entities.Product, error)
 }

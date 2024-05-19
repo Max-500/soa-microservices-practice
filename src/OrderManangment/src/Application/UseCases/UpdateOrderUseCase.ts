@@ -1,8 +1,8 @@
 import { IOrder } from "../../Domain/Ports/IOrder";
-import { RabbitMQService } from "../../Infraestructure/Services/RabbitMQService";
+import { IRabbitMQService } from "../Services/IRabbitMQService";
 
 export class UpdateOrderUseCase {
-    constructor(readonly repository:IOrder, readonly serviceRabbit:RabbitMQService){}
+    constructor(readonly repository:IOrder, readonly serviceRabbit:IRabbitMQService){}
 
     async run(uuid:string) {
         

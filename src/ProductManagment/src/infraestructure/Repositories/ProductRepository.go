@@ -3,21 +3,20 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"order-managment/src/domain/entities"
 	requests "order-managment/src/infraestructure/Controllers/DTO/Requests"
 	configMongo "order-managment/src/infraestructure/Database/MongoDB/Config"
 	configMySQL "order-managment/src/infraestructure/Database/MySQL/Config"
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type ProductRepository struct {
 	dbType  string
 	dbMySQL *configMySQL.MySQL
 	dbMongo *configMongo.MongoDB
-	dbName string
-
+	dbName  string
 }
 
 func NewProductRepository(dbType string, mysql *configMySQL.MySQL, mongo *configMongo.MongoDB, dbName string) *ProductRepository {
@@ -25,7 +24,7 @@ func NewProductRepository(dbType string, mysql *configMySQL.MySQL, mongo *config
 		dbType:  dbType,
 		dbMySQL: mysql,
 		dbMongo: mongo,
-		dbName: dbName,
+		dbName:  dbName,
 	}
 }
 
@@ -131,7 +130,7 @@ func (repo *ProductRepository) UpdateTracking(uuid string, amount int) (string, 
 		}
 	}
 
-	return "",nil
+	return "", nil
 }
 
 func (repo *ProductRepository) GetAllProducts() ([]entities.Product, error) {
@@ -177,6 +176,50 @@ func (repo *ProductRepository) GetAllProducts() ([]entities.Product, error) {
 
 		if err := cursor.Err(); err != nil {
 			log.Fatalf("Error en el cursor: %v", err)
+		}
+	}
+
+	return products, nil
+}
+
+func (repo *ProductRepository) GetProduct(uuid string) ([]entities.Product, error) {
+	var products []entities.Product
+
+	if repo.dbType == "MongoDB" {
+		collection := repo.dbMongo.Client.Database(repo.dbName).Collection("products")
+		filter := bson.M{"uuid": uuid}
+		cursor, err := collection.Find(context.TODO(), filter)
+		if err != nil {
+			return nil, err
+		}
+		defer cursor.Close(context.TODO())
+
+		for cursor.Next(context.TODO()) {
+			var product entities.Product
+			err := cursor.Decode(&product)
+			if err != nil {
+				return nil, err
+			}
+			products = append(products, product)
+		}
+	}
+
+	if repo.dbType == "MySQL" {
+		db := repo.dbMySQL.DB
+		query := `SELECT * FROM products WHERE uuid = ?`
+		rows, err := db.Query(query, uuid)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var product entities.Product
+			err := rows.Scan(&product.Uuid, &product.Name, &product.Price, &product.Stock) // Asegúrate de que estos campos coincidan con los de tu estructura y tabla de productos.
+			if err != nil {
+				return nil, err
+			}
+			products = append(products, product)
 		}
 	}
 

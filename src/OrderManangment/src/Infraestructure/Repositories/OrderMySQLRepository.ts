@@ -2,7 +2,7 @@ import { IOrder } from "../../Domain/Ports/IOrder";
 import { generateUuid } from "../Helpers/Functions";
 import { OrderModel } from "../Database/MySQL/Models/OrderMySQLModel";
 import { OrderProductMySQModel } from "../Database/MySQL/Models/OrderProductMySQLModel";
-import { RabbitMQService } from "../Services/RabbitMQService";
+import { IRabbitMQService } from "../../Application/Services/IRabbitMQService";
 
 export class OrderMySQLRepository implements IOrder {
     async createOrders(data: any): Promise<any> {
@@ -61,7 +61,7 @@ export class OrderMySQLRepository implements IOrder {
         }
     }
 
-    async updateStatus(data: any, serviceRabbit:RabbitMQService): Promise<any> {
+    async updateStatus(data: any, serviceRabbit:IRabbitMQService): Promise<any> {
         try {
             const order = await OrderModel.findByPk(data)
             if(!order){
@@ -80,7 +80,6 @@ export class OrderMySQLRepository implements IOrder {
                 uuid: product?.dataValues.productUuid,
                 amount: product?.dataValues.amount
              }
-            console.log(message);
             serviceRabbit.sendMessage("update_stock_queue", message)
             return {
                 status: 200,
@@ -94,4 +93,32 @@ export class OrderMySQLRepository implements IOrder {
         }
     }
 
+    async getOrder(uuid: string, serviceRabbit:IRabbitMQService): Promise<any> {
+        try {
+            const order = await OrderProductMySQModel.findOne({ where: { orderUuid: uuid } });
+            console.log(order?.dataValues);
+            if(!order){
+                return {
+                    status: 404,
+                    message: "La orden no existe"
+                }
+            }
+            const message = {
+                "uuid": order.dataValues.productUuid
+            }
+            await serviceRabbit.sendMessage("send_get_products_queue", message);
+            console.log("Ya envie a la cola");
+            const result = await serviceRabbit.receiveMessage("receive_get_products_queue");
+            console.log("Ya recibi la cola");
+            return {
+                status: 200,
+                result
+            }
+        } catch (error) {
+            return{
+                status: 500,
+                error
+            }
+        }
+    }
 }

@@ -61,5 +61,10 @@ func InitRoutes(dbType string, dbName string, dbHost string, dbPort string, dbUs
 	if err != nil {
 		log.Fatalf("Error al recibir mensajes: %v", err)
 	}
+
+	_, err = rabbitService.ReceiveMessage("send_get_products_queue")
+	if err != nil {
+		log.Fatalf("Error al recibir mensajes: %v", err)
+	}
 	return r
 }
